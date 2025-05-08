@@ -1,0 +1,94 @@
+VERSION
+8
+
+COMMSETTINGS
+0
+COM30
+COM6
+115200
+2
+63
+4
+0
+0
+
+COMMDISPLAY
+0
+
+VERSATAP
+0
+
+CHANNELALIAS
+
+
+
+SEND
+0
+***** Command List *****
+
+0
+5
+
+SEND
+1
+version
+76 65 72 73 69 6F 6E 0D 0A
+0
+5
+
+SEND
+2
+help
+68 65 6C 70 0D 0A
+0
+.01
+
+SEND
+3
+gnrmc ?
+67 6E 72 6D 63 20 3F 0D 0A
+0
+5
+
+SEND
+4
+gnrmc status
+67 6E 72 6D 63 20 73 74 61 74 75 73 0D 0A
+0
+5
+
+SEND
+5
+gnrmc time
+67 6E 72 6D 63 20 74 69 6D 65 0D 0A
+0
+5
+
+SEND
+6
+gnrmc date
+67 6E 72 6D 63 20 64 61 74 65 0D 0A
+0
+5
+
+SEND
+7
+gnrmc lat
+67 6E 72 6D 63 20 6C 61 74 0D 0A
+0
+5
+
+SEND
+8
+gnrmc lon
+67 6E 72 6D 63 20 6C 6F 6E 0D 0A
+0
+5
+
+SEND
+9
+gnrmc spd
+67 6E 72 6D 63 20 73 70 64 0D 0A
+0
+5
+

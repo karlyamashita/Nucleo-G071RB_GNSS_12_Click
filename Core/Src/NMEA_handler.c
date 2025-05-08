@@ -10,33 +10,35 @@
 
 char NMEA_GNRMC_String[UART_DMA_QUEUE_DATA_SIZE] = "pending...";
 
+GNRMC_t gnrmc_data = {0};
+
+
 /*
- * Description: parse the GNSS data and save to NMEA_String. We have commands to retrieve this or partial arguments.
+ * Description: parse the GNRMC data and save to NMEA_String. We have commands to retrieve this string
+ * 				or retrieve specific arguments.
  */
-int NMEA_GNRMC(char *msg)
+int NMEA_GNRMC_Data(char *msg)
 {
-	bool pass;
-
-	pass = NMEA_CalculateChecksum(msg);
-	if(pass)
+	if(NMEA_CalculateChecksum(msg))
 	{
-		char *nmea = strtok_f(msg, ',');
-		char *time = strtok_f(NULL, ',');
-		char *status = strtok_f(NULL, ',');
-		char *lat = strtok_f(NULL, ',');
-		char *ns = strtok_f(NULL, ',');
-		char *lon = strtok_f(NULL, ',');
-		char *ew = strtok_f(NULL, ',');
-		char *spd = strtok_f(NULL, ',');
-		char *cog = strtok_f(NULL, ',');
-		char *date = strtok_f(NULL, ',');
-		//char *mv = strtok_f(NULL, ','); // supported in AD 4.10 and later
-		char *mvew = strtok_f(NULL, ',');
-		char *posMode = strtok_f(NULL, ',');
-		char *navStatus = strtok_f(NULL, '*');
+		sprintf(NMEA_GNRMC_String, msg);
 
-		sprintf(NMEA_GNRMC_String, "%s = time: %s, status: %s, lat: %s, ns: %s, lon: %s, ew: %s, spd: %s, cog: %s, date: %s, mvew: %s, posMode: %s, navStatus: %s",
-							nmea, time, status, lat, ns, lon, ew, spd, cog, date, mvew, posMode, navStatus);
+		sprintf(gnrmc_data.nmea, "%s", strtok_f(msg, ','));
+		sprintf(gnrmc_data.time, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.status, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.lat, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.ns, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.lon, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.ew, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.spd, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.cog, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.date, "%s", strtok_f(NULL, ','));
+#ifdef AD_4_10
+		sprintf(gnrmc_data.mv, "%s", strtok_f(NULL, ','));
+#endif
+		sprintf(gnrmc_data.mvew, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.posMode, "%s", strtok_f(NULL, ','));
+		sprintf(gnrmc_data.navStatus, "%s", strtok_f(NULL, ','));
 	}
 
 	return 0;
@@ -45,19 +47,13 @@ int NMEA_GNRMC(char *msg)
 /*
  * Description: Parse command
  */
-int NMEA_GNRMC_Parse(char *msg, char *retStr)
+int NMEA_GNRMC_Command(char *msg, char *retStr)
 {
 	int status = NO_ERROR;
-	char *token; // 1 or 0
+	char *token;
 	char *rest = msg;
 	char *result;
 	char delim[] = ": ,|\r";
-	uint32_t idx = 0;
-	char copy[UART_DMA_QUEUE_DATA_SIZE] = {0};
-	char *ptr = copy;
-	char strToFind[16] = {0};
-
-	memcpy(ptr, &NMEA_GNRMC_String, strlen(NMEA_GNRMC_String)); // copy current string as to
 
 	result = strstr(rest, "?");
 	if(result != NULL)
@@ -66,34 +62,35 @@ int NMEA_GNRMC_Parse(char *msg, char *retStr)
 	}
 	else // return specific argument
 	{
-		token = strtok_r(rest, delim, &rest); // get enable status
-		if(strncmp(token, "time", strlen("time")) == 0)
+		token = strtok_r(rest, delim, &rest);
+		if(strncmp(token, "status", strlen("status")) == 0)
 		{
-			sprintf(strToFind, "time:");
+			sprintf(retStr, gnrmc_data.status);
+		}
+		else if(strncmp(token, "time", strlen("time")) == 0)
+		{
+			sprintf(retStr, gnrmc_data.time);
 		}
 		else if(strncmp(token, "lat", strlen("lat")) == 0)
 		{
-			sprintf(strToFind, "lat:");
+			sprintf(retStr, gnrmc_data.lat);
 		}
 		else if(strncmp(token, "lon", strlen("lon")) == 0)
 		{
-			sprintf(strToFind, "lon:");
+			sprintf(retStr, gnrmc_data.lon);
 		}
 		else if(strncmp(token, "date", strlen("date")) == 0)
 		{
-			sprintf(strToFind, "date:");
+			sprintf(retStr, gnrmc_data.date);
+		}
+		else if(strncmp(token, "spd", strlen("spd")) == 0)
+		{
+			sprintf(retStr, gnrmc_data.spd);
 		}
 		else
 		{
 			status = COMMAND_UNKNOWN;
 		}
-
-		if(status != NO_ERROR) return status;
-
-		idx = FindWordIndex(ptr, strToFind);
-		ptr += idx;
-		idx = FindCharIndex(ptr, ',');
-		snprintf(retStr, idx + 1, "%s", ptr);
 	}
 
 	return status;
@@ -125,37 +122,6 @@ bool NMEA_CalculateChecksum(char *msg)
     }
 
     return false;
-}
-
-int FindWordIndex(const char *msg, const char *word)
-{
-    const char *result = strstr(msg, word);
-    if (result == NULL)
-    {
-        return -1;
-    }
-    else
-    {
-        return (int)(result - msg); // return index
-    }
-}
-
-int FindCharIndex(const char *str, char c)
-{
-	if (str == NULL)
-	{
-		return -1;
-	}
-
-	for (int i = 0; str[i] != '\0'; i++)
-	{
-		if (str[i] == c)
-		{
-			return i;
-		}
-	}
-
-	return -1;
 }
 
 /*

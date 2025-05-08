@@ -70,22 +70,32 @@ char msg_copy_command[UART_DMA_QUEUE_DATA_SIZE] = {0};
 
 void PollingInit(void)
 {
+	// Enable UART DMA Idle  interrupt. We are using circular mode, so we only need to call these two once.
 	UART_DMA_EnableRxInterruptIdle(&uart1_msg);
 	UART_DMA_EnableRxInterruptIdle(&uart2_msg);
 
+	// toggle led for SOH
+	TimerCallbackRegisterOnly(&timerCallback, LED_Toggle);
+	TimerCallbackTimerStart(&timerCallback, LED_Toggle, 500, TIMER_REPEAT);
+
+	// Check to see if we need to send all the commands registered
 	TimerCallbackRegisterOnly(&timerCallback, Command_List_Poll);
 	TimerCallbackTimerStart(&timerCallback, Command_List_Poll, 10, TIMER_REPEAT);
 
+	// Indicate the STM32 is now running
 	UART_DMA_NotifyUser(&uart2_msg, (char*)hellofromstm32, strlen((char*)hellofromstm32), true);
 }
 
 void PollingRoutine(void)
 {
+	// Poll the timer callback
 	TimerCallbackPoll(&timerCallback);
 
+	// parse the large circular buffer
 	UART_DMA_ParseCircularBuffer(&uart1_msg);
 	UART_DMA_ParseCircularBuffer(&uart2_msg);
 
+	// Check for new UART messages
 	UART1_CheckForNewMessage(&uart1_msg);
 	UART2_CheckForNewMessage(&uart2_msg);
 }
@@ -99,7 +109,7 @@ void UART2_CheckForNewMessage(UART_DMA_Struct_t *msg)
 
 	if(UART_DMA_RxMsgRdy(msg))
 	{
-		memset(&msg_copy_command, 0, sizeof(msg_copy_command));// clear
+		memset(&msg_copy_command, 0, sizeof(msg_copy_command)); // clear
 		memcpy(&msg_copy_command, msg->rx.msgToParse->data, strlen((char*)msg->rx.msgToParse->data) - 2); // remove CR/LF
 
 		ptr = (char*)msg->rx.msgToParse->data;
@@ -118,11 +128,6 @@ void UART2_CheckForNewMessage(UART_DMA_Struct_t *msg)
 		{
 			ptr += strlen("gnrmc");
 			status = gnrmc.func(ptr, retStr);
-		}
-		// temporary to simulate GNSS on UART1
-		else if(strncmp(ptr, "$gnrmc", strlen("$gnrmc"))== 0)
-		{
-			status = NMEA_GNRMC(msg_copy_command);
 		}
 		else
 		{
@@ -158,7 +163,7 @@ void UART1_CheckForNewMessage(UART_DMA_Struct_t *msg)
 
 		if(strncmp(ptr, "$GNRMC", strlen("$GNRMC")) == 0) // looking for $GNRMC message only
 		{
-			NMEA_GNRMC(ptr); // parse message
+			NMEA_GNRMC_Data(ptr); // parse message
 		}
 		else
 		{
@@ -215,4 +220,12 @@ int Command_ListNotify(char *msg)
 	UART_DMA_NotifyUser(&uart2_msg, msg, strlen(msg), true);
 
 	return status;
+}
+
+/*
+ * Description: Toggle LED
+ */
+void LED_Toggle(void)
+{
+	HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 }

@@ -9,12 +9,28 @@
 #define INC_NMEA_HANDLER_H_
 
 
-int NMEA_GNRMC(char *msg);
-int NMEA_GNRMC_Parse(char *msg, char *retStr);
+typedef struct
+{
+	char nmea[6]; // 5 char + null
+	char time[10];
+	char status[2];
+	char lat[12];
+	char ns[2];
+	char lon[12];
+	char ew[2];
+	char spd[8];
+	char cog[6];
+	char date[7];
+	char mv[8];
+	char mvew[2];
+	char posMode[8];
+	char navStatus[2];
+}GNRMC_t;
+
+int NMEA_GNRMC_Data(char *msg);
+int NMEA_GNRMC_Command(char *msg, char *retStr);
 
 bool NMEA_CalculateChecksum(char *msg);
-int FindWordIndex(const char *msg, const char *word);
-int FindCharIndex(const char *str, char c);
 
 char *strtok_fr (char *s, char delim, char **save_ptr);
 char *strtok_f (char *s, char delim);

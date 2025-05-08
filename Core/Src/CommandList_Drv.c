@@ -11,8 +11,8 @@
 
 //****** DO NOT MODIFY BELOW **************
 
-int cmd_list_poll_mode = 0;
-int puttyIsColor = false;
+int cmd_list_poll_run = 0;
+int puttyIsColor = false; // if working with putty or MobaXterm, we can print text in color
 int colorIs = 37; // default to white
 
 /*
@@ -32,7 +32,7 @@ void Command_List_Poll(void)
 	char command[UART_DMA_QUEUE_DATA_SIZE] = {0};
 	char str2[UART_DMA_QUEUE_DATA_SIZE] = {0};
 
-	if(cmd_list_poll_mode)
+	if(cmd_list_poll_run)
 	{
 		sprintf(strColor, "\033[0;%dm", colorIs);
 
@@ -72,7 +72,7 @@ void Command_List_Poll(void)
 
 		if(++cmdPtr == num_elements)
 		{
-			cmd_list_poll_mode = 0; // done
+			cmd_list_poll_run = 0; // done
 			cmdPtr = 0; // reset
 			sprintf(str2, "***** END *****"); // print END
 			Command_ListNotify(str2);
@@ -83,7 +83,7 @@ void Command_List_Poll(void)
 
 /*
  * Description: This should be called when "help" is received. This will start to return all the command functions created.
- * 				The 2nd argument is the character representing the color to use for the command name. Good for Putty.
+ * 				The 2nd argument is the character representing the color to use for the command name. Good for MobaXterm.
  *
  * Input: msg arg can be NULL or 1. retStr not used, leave alone so it'll return OK.
  * Output: None
@@ -139,7 +139,7 @@ int Command_List_Print(char* msg, char *retStr)
 		}
 	}
 
-	cmd_list_poll_mode = 1; // start
+	cmd_list_poll_run = 1; // start
 
 	return NO_ERROR;
 }

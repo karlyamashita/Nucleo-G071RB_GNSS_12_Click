@@ -21,12 +21,14 @@ const Command_t gnrmc =
 {
 	.command = "gnrmc",
 	.args = "gnrmc ?\r\n"
+			"\tgnrmc status\r\n"
 			"\tgnrmc time\r\n"
 			"\tgnrmc date\r\n"
 			"\tgnrmc lat\r\n"
-			"\tgnrmc lon",
+			"\tgnrmc lon\r\n"
+			"\tgnrmc spd",
 	.notes = NULL,
-	.func = NMEA_GNRMC_Parse
+	.func = NMEA_GNRMC_Command
 };
 
 const Command_t version =

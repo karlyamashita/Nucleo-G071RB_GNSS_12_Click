@@ -22,7 +22,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 		for(i = 0; i < size; i++)
 		{
-			uart1_msg.dma.circularBuffer[uart2_msg.dma.circularPtr.index_IN] = uart1_msg.dma.dma_data[uart1_msg.dma.dmaPtr.index_IN];
+			uart1_msg.dma.circularBuffer[uart1_msg.dma.circularPtr.index_IN] = uart1_msg.dma.dma_data[uart1_msg.dma.dmaPtr.index_IN];
 			RingBuff_Ptr_Input(&uart1_msg.dma.circularPtr, UART_DMA_CIRCULAR_SIZE);
 			RingBuff_Ptr_Input(&uart1_msg.dma.dmaPtr, UART_DMA_BUFFER_SIZE);
 		}
