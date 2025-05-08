@@ -43,6 +43,7 @@ void PrintError(UART_DMA_Struct_t *msg, char *msg_copy, uint32_t error);
 void PrintReply(UART_DMA_Struct_t *msg, char *msg_copy, char *msg2);
 
 int Version(char *msg, char* retStr);
+int Passthrough(char *msg, char* retStr);
 
 int Command_ListNotify(char *msg);
 void LED_Toggle(void);

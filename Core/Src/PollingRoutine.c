@@ -66,7 +66,7 @@ UART_DMA_Struct_t uart1_msg =
 
 
 char msg_copy_command[UART_DMA_QUEUE_DATA_SIZE] = {0};
-
+int passthrough_flag = 1; // allows GNSS data to be passed through to command port
 
 void PollingInit(void)
 {
@@ -94,6 +94,10 @@ void PollingRoutine(void)
 	// parse the large circular buffer
 	UART_DMA_ParseCircularBuffer(&uart1_msg);
 	UART_DMA_ParseCircularBuffer(&uart2_msg);
+
+	// check hal status
+	UART_DMA_CheckHAL_Status(&uart1_msg);
+	UART_DMA_CheckHAL_Status(&uart2_msg);
 
 	// Check for new UART messages
 	UART1_CheckForNewMessage(&uart1_msg);
@@ -129,6 +133,11 @@ void UART2_CheckForNewMessage(UART_DMA_Struct_t *msg)
 			ptr += strlen("gnrmc");
 			status = gnrmc.func(ptr, retStr);
 		}
+		else if(strncmp(ptr, "pass", strlen("pass"))== 0)
+		{
+			ptr += strlen("pass");
+			status = pass.func(ptr, NULL);
+		}
 		else
 		{
 			status = COMMAND_UNKNOWN;
@@ -160,6 +169,11 @@ void UART1_CheckForNewMessage(UART_DMA_Struct_t *msg)
 	if(UART_DMA_RxMsgRdy(msg))
 	{
 		ptr = (char*)msg->rx.msgToParse->data;
+
+		if(passthrough_flag)
+		{
+			UART_DMA_NotifyUser(&uart2_msg, ptr, strlen(ptr), false);
+		}
 
 		if(strncmp(ptr, "$GNRMC", strlen("$GNRMC")) == 0) // looking for $GNRMC message only
 		{
@@ -204,6 +218,13 @@ void PrintReply(UART_DMA_Struct_t *msg, char *msg_copy, char *msg2)
 int Version(char *msg, char* retStr)
 {
 	sprintf(retStr, fw_version);
+
+	return NO_ERROR;
+}
+
+int Passthrough(char *msg, char* retStr)
+{
+	passthrough_flag = atoi(msg);
 
 	return NO_ERROR;
 }

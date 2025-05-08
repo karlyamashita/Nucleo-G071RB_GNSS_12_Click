@@ -92,3 +92,10 @@ gnrmc spd
 0
 5
 
+SEND
+10
+pass ? (Pass through GNSS string to command port)
+70 61 73 73 20 ?? 0D 0A
+0
+5
+

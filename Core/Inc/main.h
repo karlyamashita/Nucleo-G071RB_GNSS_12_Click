@@ -64,6 +64,7 @@ extern TimerCallbackStruct timerCallback;
 
 extern const Command_t help;
 extern const Command_t gnrmc;
+extern const Command_t pass;
 extern const Command_t version;
 extern const Command_t Command_List[];
 

@@ -31,6 +31,15 @@ const Command_t gnrmc =
 	.func = NMEA_GNRMC_Command
 };
 
+const Command_t pass =
+{
+	.command = "pass",
+	.args = "pass 0\r\n"
+			"\tpass 1",
+	.notes = NULL,
+	.func = Passthrough
+};
+
 const Command_t version =
 {
 	.command = "version",
@@ -50,6 +59,7 @@ const Command_t Command_List[] =
 {
 	help,
 	gnrmc,
+	pass,
 	version
 };
 
